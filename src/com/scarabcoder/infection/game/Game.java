@@ -227,7 +227,7 @@ public class Game {
 								p.getInventory().addItem(gun1);
 								p.getInventory().addItem(gun2);
 								p.updateInventory();
-								TitleAPI.sendTitle(p, 10, 120, 10, ChatColor.GREEN + "Defend yourself from the zombie horde!", "Shoot the zombies before they infect you.");
+								TitleAPI.sendTitle(p, 10, 120, 10, ChatColor.GREEN + "Stay alive!", "Shoot the zombies before they infect you.");
 							}else{
 								TitleAPI.sendTitle(p, 10, 120, 10, ChatColor.RED + "Braaaains...", "Infect the humans.");
 								p.playSound(p.getLocation(), Sound.ENTITY_ZOMBIE_DEATH, 1, 0.5f);
@@ -255,8 +255,8 @@ public class Game {
 						p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 3));
 						Main.api.disguise(p, disguise);
 					}
-					this.sendMessage(ChatColor.RED + "Zombies have gotten smaller and faster!");
 				}
+				this.sendMessage(ChatColor.RED + "Zombies have gotten smaller and faster!");
 			}
 			int infected = 0;
 			for(Player p : this.getPlayers()){
