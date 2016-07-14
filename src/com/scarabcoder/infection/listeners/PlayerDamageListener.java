@@ -8,6 +8,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 
 import com.scarabcoder.infection.game.GameManager;
 
@@ -26,12 +27,14 @@ public class PlayerDamageListener implements Listener {
 				Arrow arrow = (Arrow) e.getDamager();
 				Player attacked = (Player) e.getEntity();
 				if(GameManager.isPlayerIngame(attacked)){
-					GameManager.getGamePlayerIsIn(attacked).arrowHitPlayerEvent(attacked, arrow);
+					GameManager.getGamePlayerIsIn(attacked).arrowHitPlayerEvent(attacked, arrow, e.getDamage());
 					e.setCancelled(true);
 				}
 			}
 		}
 	}
+	
+	
 	
 	
 	@EventHandler
