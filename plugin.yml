@@ -1,0 +1,7 @@
+name: Infection
+version: 1.0
+main: com.scarabcoder.infection.Main
+commands:
+    infection:
+        description: Main command
+        usage: /infection
