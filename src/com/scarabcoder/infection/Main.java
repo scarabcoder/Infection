@@ -61,7 +61,7 @@ public class Main extends JavaPlugin{
 		this.getServer().getPluginManager().registerEvents(new SignPlaceListener(), this);
 		FileConfiguration config = this.getConfig();
 		
-		Game game = new Game("infected1", 4, 30, config.getInt("countdownTime"), new Location(Bukkit.getWorld("infected1"), 11.5, 63, -38), new Location(Bukkit.getWorld("infected1"), -19, 62, -29), new Location(Bukkit.getWorld("infected1"), -2, 62, 32));
+		Game game = new Game("infected1", 3, 30, config.getInt("countdownTime"), new Location(Bukkit.getWorld("infected1"), 11.5, 63, -38), new Location(Bukkit.getWorld("infected1"), -19, 62, -29), new Location(Bukkit.getWorld("infected1"), -2, 62, 32));
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
 
 			@Override

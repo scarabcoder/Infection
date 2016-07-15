@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-import net.md_5.bungee.api.ChatColor;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
@@ -18,7 +16,6 @@ import org.bukkit.Sound;
 import org.bukkit.craftbukkit.v1_10_R1.entity.CraftPlayer;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Zombie;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
@@ -26,11 +23,11 @@ import org.bukkit.potion.PotionEffectType;
 
 import com.connorlinfoot.titleapi.TitleAPI;
 import com.scarabcoder.infection.Main;
-import com.scarabcoder.infection.ScarabUtil;
 import com.scarabcoder.infection.enums.GameStatus;
 import com.scarabcoder.infection.enums.PlayerType;
 
 import de.robingrether.idisguise.disguise.ZombieDisguise;
+import net.md_5.bungee.api.ChatColor;
 
 public class Game {
 	
@@ -64,7 +61,7 @@ public class Game {
 	
 	private int time = 0;
 	
-	private int speed = 2;
+	private int speed = 1;
 	
 	private boolean baby = false;
 	
@@ -93,6 +90,21 @@ public class Game {
 
 			@Override
 			public void run() {
+				
+				for(Player p : getPlayers()){
+						if(p.isSneaking()){
+							if(p.getItemInHand().getType().equals(Material.WOOD_HOE)){
+								if(!isZoomed(p)){
+									zoomIn(p);
+								}
+						}
+					}else{
+						if(isZoomed(p)){
+							zoomOut(p);
+						}
+					}
+				}
+				
 				for(String str : sCooldown.keySet()){
 					if(sCooldown.get(str).equals(0)){
 						sCooldown.remove(str);
@@ -164,6 +176,14 @@ public class Game {
 		return this.maxPlayers;
 	}
 	
+	public void zoomIn(Player p){
+		p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, 15));
+	}
+	
+	public void zoomOut(Player p){
+		p.removePotionEffect(PotionEffectType.SLOW);
+	}
+	
 	public void doSecond(){
 		if(this.getStatus().equals(GameStatus.WAITING)){
 			if(counter == countdown + 1){
@@ -200,40 +220,7 @@ public class Game {
 					}
 				}else{
 					if(this.getPlayerUUIDs().size() >= this.minPlayers){
-						for(Player p : this.getPlayers()){
-							p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1,1);
-						}
-						this.setGameStatus(GameStatus.INGAME);
-						long seed = System.nanoTime();
-						Collections.shuffle(this.players, new Random(seed));
-						this.infect(this.getPlayers().get(0));
-						this.infect(this.getPlayers().get(1));
-						for(Player p : this.getPlayers()){
-							if(!this.isInfected(p)){
-								p.teleport(this.humanSpawn);
-								p.sendMessage(ChatColor.RED + "OH NO! THE ZOMBIES ARE COMING!");
-								ItemStack gun = new ItemStack(Material.IRON_HOE);
-								ItemMeta meta = gun.getItemMeta();
-								meta.setDisplayName(ChatColor.BOLD.toString() + ChatColor.GREEN + "Shotgun");
-								gun.setItemMeta(meta);
-								ItemStack gun1 = new ItemStack(Material.WOOD_HOE);
-								meta = gun.getItemMeta();
-								meta.setDisplayName(ChatColor.BOLD.toString() + ChatColor.GREEN + "Handgun");
-								gun1.setItemMeta(meta);
-								ItemStack gun2 = new ItemStack(Material.STONE_HOE);
-								meta = gun.getItemMeta();
-								meta.setDisplayName(ChatColor.BOLD.toString() + ChatColor.GREEN + "Machine gun");
-								gun2.setItemMeta(meta);
-								p.getInventory().addItem(gun);
-								p.getInventory().addItem(gun1);
-								p.getInventory().addItem(gun2);
-								p.updateInventory();
-								TitleAPI.sendTitle(p, 10, 120, 10, ChatColor.GREEN + "Stay alive!", "Shoot the zombies before they infect you.");
-							}else{
-								TitleAPI.sendTitle(p, 10, 120, 10, ChatColor.RED + "Braaaains...", "Infect the humans.");
-								p.playSound(p.getLocation(), Sound.ENTITY_ZOMBIE_DEATH, 1, 0.5f);
-							}
-						}
+						this.startGame();
 						
 					}else{
 						this.sendMessage(ChatColor.RED + "Not enough players, cancelling countdown.");
@@ -251,7 +238,7 @@ public class Game {
 						ZombieDisguise disguise = new ZombieDisguise();
 						disguise.setCustomName(p.getName());
 						disguise.setAdult(!this.baby);
-						this.speed = 3;
+						this.speed = 2;
 						p.removePotionEffect(PotionEffectType.SPEED);
 						p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 3));
 						Main.api.disguise(p, disguise);
@@ -295,15 +282,63 @@ public class Game {
 		}
 	}
 	
+	public void startGame(){
+		for(Player p : this.getPlayers()){
+			p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1,1);
+		}
+		this.setGameStatus(GameStatus.INGAME);
+		List<Player> infected = new ArrayList<Player>(this.getPlayers());
+		int random = new Random().nextInt(infected.size());
+		this.infect(infected.get(random));
+		infected.remove(random);
+		random = new Random().nextInt(infected.size());
+		this.infect(infected.get(random));
+		infected.remove(random);
+		for(Player p : this.getPlayers()){
+			if(!this.isInfected(p)){
+				p.teleport(this.humanSpawn);
+				p.sendMessage(ChatColor.RED + "OH NO! THE ZOMBIES ARE COMING!");
+				ItemStack gun = new ItemStack(Material.IRON_HOE);
+				ItemMeta meta = gun.getItemMeta();
+				meta.setDisplayName(ChatColor.BOLD.toString() + ChatColor.GREEN + "Shotgun");
+				gun.setItemMeta(meta);
+				ItemStack gun1 = new ItemStack(Material.WOOD_HOE);
+				meta = gun.getItemMeta();
+				meta.setDisplayName(ChatColor.BOLD.toString() + ChatColor.GREEN + "Rifle");
+				gun1.setItemMeta(meta);
+				ItemStack gun2 = new ItemStack(Material.STONE_HOE);
+				meta = gun.getItemMeta();
+				meta.setDisplayName(ChatColor.BOLD.toString() + ChatColor.GREEN + "Machine gun");
+				gun2.setItemMeta(meta);
+				p.getInventory().addItem(gun);
+				p.getInventory().addItem(gun1);
+				p.getInventory().addItem(gun2);
+				p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 8 * 20, 0));
+				p.updateInventory();
+				TitleAPI.sendTitle(p, 10, 75, 10, ChatColor.GREEN + "Stay alive!", "Shoot the zombies before they infect you.");
+			}else{
+				TitleAPI.sendTitle(p, 10, 75, 10, ChatColor.RED + "Braaaains...", "Infect the humans.");
+				p.playSound(p.getLocation(), Sound.ENTITY_ZOMBIE_DEATH, 1, 0.5f);
+			}
+		}
+	}
+	
 	public void endGame(){
 		this.sendMessage("Game ending!");
 		for(Player p : this.getPlayers()){
 			this.removePlayer(p);
+			this.zoomOut(p);
 		}
+		this.flare = 0;
+		this.baby = false;
+		time = 0;
 		this.counter = countdown + 1;
 		this.setGameStatus(GameStatus.WAITING);
 	}
 	
+	public boolean isZoomed(Player p){
+		return p.hasPotionEffect(PotionEffectType.SLOW);
+	}
 	
 	public void addHeat(Player p, int amount){
 		this.heat.put(p.getUniqueId().toString(), this.heat.get(p.getUniqueId().toString()) + amount);
@@ -324,7 +359,16 @@ public class Game {
 					if(this.arrowGun.get(arrow.getUniqueId().toString()).equals(Material.IRON_HOE)){
 						doDamage = 20;
 					}else if(this.arrowGun.get(arrow.getUniqueId().toString()).equals(Material.WOOD_HOE)){
-						doDamage = 15;
+						double y = hit.getEyeLocation().getY();
+						y = y - 0.2;
+						System.out.println(arrow.getLocation().getY());
+						System.out.println(y);
+						if(arrow.getLocation().getY() >= y){
+							doDamage = 20;
+							p.sendMessage(ChatColor.GREEN + ChatColor.BOLD.toString() + "BOOM! HEADSHOT!");
+						}else{
+							doDamage = 15;
+						}
 					}else{
 						doDamage = 5;
 					}

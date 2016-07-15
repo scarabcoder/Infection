@@ -19,8 +19,8 @@ public class RightClickListener implements Listener{
 	@EventHandler
 	public void playerRightClick(PlayerInteractEvent e){
 		if(GameManager.isPlayerIngame(e.getPlayer())){
+			Game game = GameManager.getGamePlayerIsIn(e.getPlayer());
 			if(e.getAction().equals(Action.RIGHT_CLICK_AIR) || (e.getAction().equals(Action.RIGHT_CLICK_BLOCK))){
-				Game game = GameManager.getGamePlayerIsIn(e.getPlayer());
 				if(e.getPlayer().getItemInHand().getType().equals(Material.IRON_HOE)){
 					if(game.canFireShotgun(e.getPlayer())){
 						Arrow arrow = e.getPlayer().getWorld().spawnArrow(e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(),3, 8);
@@ -36,7 +36,7 @@ public class RightClickListener implements Listener{
 				e.setCancelled(true);
 				}else if(e.getPlayer().getItemInHand().getType().equals(Material.WOOD_HOE)){
 					if(game.canFireHandgun(e.getPlayer())){
-						Arrow arrow = e.getPlayer().getWorld().spawnArrow(e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(),3, 2);
+						Arrow arrow = e.getPlayer().getWorld().spawnArrow(e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(),3, 0);
 						arrow.setGravity(false);
 						arrow.setShooter(e.getPlayer());
 						arrow.setBounce(false);
@@ -51,7 +51,7 @@ public class RightClickListener implements Listener{
 
 						@Override
 						public void run() {
-							Arrow arrow = e.getPlayer().getWorld().spawnArrow(e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(),8, 10);
+							Arrow arrow = e.getPlayer().getWorld().spawnArrow(e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(),8, 15);
 							arrow.setGravity(false);
 							arrow.setBounce(false);
 							arrow.setShooter(e.getPlayer());
