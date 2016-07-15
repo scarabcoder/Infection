@@ -11,6 +11,7 @@ import net.md_5.bungee.api.ChatColor;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -299,6 +300,7 @@ public class Game {
 		for(Player p : this.getPlayers()){
 			this.removePlayer(p);
 		}
+		this.counter = countdown + 1;
 		this.setGameStatus(GameStatus.WAITING);
 	}
 	
@@ -322,9 +324,9 @@ public class Game {
 					if(this.arrowGun.get(arrow.getUniqueId().toString()).equals(Material.IRON_HOE)){
 						doDamage = 20;
 					}else if(this.arrowGun.get(arrow.getUniqueId().toString()).equals(Material.WOOD_HOE)){
-						doDamage = 10;
+						doDamage = 15;
 					}else{
-						doDamage = 2;
+						doDamage = 5;
 					}
 					
 					if(hit.getHealth() - doDamage <= 0){
@@ -358,6 +360,8 @@ public class Game {
 	public void addPlayer(Player p){
 		if(this.getStatus().equals(GameStatus.WAITING)){
 			if(this.players.size() != this.getMaxPlayers()){
+				p.setAllowFlight(false);
+				p.setGameMode(GameMode.ADVENTURE);
 				this.players.add(p.getUniqueId().toString());
 				this.pTypes.put(p.getUniqueId().toString(), PlayerType.HUMAN);
 				this.playerData.put(p.getUniqueId().toString(), new PlayerData(p.getUniqueId().toString(), p.getLocation(), p.getInventory().getContents(), p.getHealth(), p.getFoodLevel(), p.getTotalExperience()));
