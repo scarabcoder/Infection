@@ -267,6 +267,23 @@ public class Game {
 				}
 				
 				Bukkit.broadcastMessage(ChatColor.RESET + "[" + ChatColor.RED + "Infection" + ChatColor.RESET + "] " + ChatColor.GREEN + ChatColor.BOLD.toString() + winner.getName() + " won the game on " + this.getID() + " with " + this.points.get(winner.getUniqueId().toString()) + " kills!");
+				List<String> players = (List<String>) Main.getPlugin().getConfig().getList("players");
+				boolean contains = false;
+				for(String str : players){
+					if(str.equals(winner.getUniqueId().toString())){
+						contains = true;
+					}
+				}
+				if(!contains){
+					players.add(winner.getUniqueId().toString());
+				}
+				Main.getPlugin().getConfig().set("players", players);
+				if(Main.getPlugin().getConfig().contains("player." + winner.getUniqueId().toString())){
+					Main.getPlugin().getConfig().set("player." + winner.getUniqueId().toString(), Main.getPlugin().getConfig().getInt("player." + winner.getUniqueId().toString()) + this.points.get(winner.getUniqueId().toString()));
+				}else{
+					Main.getPlugin().getConfig().set("player." + winner.getUniqueId().toString(), this.points.get(winner.getUniqueId().toString()));
+				}
+				Main.getPlugin().saveConfig();
 				this.endGame();
 			}
 			if(this.flare == 60){

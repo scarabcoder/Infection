@@ -38,6 +38,8 @@ public class Main extends JavaPlugin{
     	List<Location> locs = new ArrayList<Location>();
     	this.getConfig().addDefault("signs", locs);
     	this.getConfig().addDefault("countdownTime", 60);
+    	this.getConfig().addDefault("players", new ArrayList<String>());
+    	
         //See "Creating you're defaults"
         plugin.getConfig().options().copyDefaults(true); // NOTE: You do not have to use "plugin." if the class extends the java plugin
         //Save the config whenever you manipulate it
