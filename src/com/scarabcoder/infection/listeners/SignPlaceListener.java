@@ -29,6 +29,17 @@ public class SignPlaceListener implements Listener {
 					}
 				}
 			}
+		}else if(e.getLine(0).equals("[iboard]")){
+			
+			if(e.getPlayer().hasPermission("infection.placesign")){
+				e.setLine(0, ChatColor.RESET + "[" + ChatColor.GREEN + "Leaderboard" + ChatColor.RESET + "]");
+				List<Location> locs = (List<Location>) Main.getPlugin().getConfig().getList("leadboards");
+				locs.add(e.getBlock().getLocation());
+				Main.getPlugin().getConfig().set("leadboards", locs);
+				Main.getPlugin().saveConfig();
+				e.setLine(3, e.getLine(1));
+				e.setLine(1, "");
+			}
 		}
 }
 }

@@ -2,7 +2,10 @@ package com.scarabcoder.infection;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
@@ -11,6 +14,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Sign;
+import org.bukkit.block.Skull;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -36,7 +40,9 @@ public class Main extends JavaPlugin{
 	
 	public void loadConfiguration(){
     	List<Location> locs = new ArrayList<Location>();
+    	
     	this.getConfig().addDefault("signs", locs);
+    	this.getConfig().addDefault("leadboards", new ArrayList<Location>());
     	this.getConfig().addDefault("countdownTime", 60);
     	this.getConfig().addDefault("players", new ArrayList<String>());
     	
@@ -96,7 +102,54 @@ public class Main extends JavaPlugin{
 						loc.getBlock().breakNaturally();
 					}
 				}
+
+				@SuppressWarnings("unchecked")
+				List<Location> boards = new CopyOnWriteArrayList<Location>((Collection<? extends Location>) Main.getPlugin().getConfig().getList("leadboards"));
+				for(Location loc : boards){
+					if(loc.getBlock().getType().equals(Material.WALL_SIGN)){
+						
+						Sign sign = (Sign) loc.getBlock().getState();
+						org.bukkit.material.Sign s = (org.bukkit.material.Sign) loc.getBlock().getState().getData();
+						Location head = sign.getBlock().getRelative(s.getAttachedFace()).getLocation();
+						head.setY(head.getY() + 1);
+						Skull skull = null;
+						if(head.getBlock().getType().equals(Material.SKULL)){
+								skull = (Skull) head.getBlock().getState();
+								
+							
+						}
+						List<String> players = (List<String>) getConfig().getList("players");
+						
+						Collections.sort(players, new Comparator<String>() {
+							@Override
+							  public int compare(String o1, String o2) {
+							      if(getConfig().getInt("player." + o1) > getConfig().getInt("player." + o2)){
+							    	  return -1;
+							      }else{
+							    	  return 1;
+							      }
+							  }
+							});
+						
+						int x = 0;
+						for(String str : players){
+							if(x == Integer.parseInt(sign.getLine(3))){
+								if(skull != null){
+									skull.setOwner(Bukkit.getOfflinePlayer(UUID.fromString(str)).getName());
+									skull.update();
+								}
+								sign.setLine(1, Bukkit.getOfflinePlayer(UUID.fromString(str)).getName());
+								sign.setLine(2, "Kills: " + getConfig().getInt("player." + str) + "");
+							}
+							x += 1;
+						}
+						sign.update();
+					}else{
+						boards.remove(loc);
+					}
+				}
 				Main.getPlugin().getConfig().set("signs", locs);
+				Main.getPlugin().getConfig().set("leadboards", boards);
 Main.getPlugin().saveConfig();
 			}
 			

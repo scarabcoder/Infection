@@ -6,6 +6,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.scarabcoder.infection.enums.GameStatus;
 import com.scarabcoder.infection.game.Game;
 import com.scarabcoder.infection.game.GameManager;
 
@@ -38,9 +39,14 @@ public class InfectionCommand implements CommandExecutor {
 				}else if(args[0].equalsIgnoreCase("start")){
 					if(GameManager.isPlayerIngame(p)){
 						Game game = GameManager.getGamePlayerIsIn(p);
+						
 						if(p.hasPermission("infection.start")){
-							game.sendMessage(ChatColor.GREEN + p.getName() + " started the game!");
-							game.startGame();
+							if(game.getStatus().equals(GameStatus.WAITING)){
+								game.sendMessage(ChatColor.GREEN + p.getName() + " started the game!");
+								game.startGame();
+							}else{
+								p.sendMessage(ChatColor.RED + "Game already started!");
+							}
 						}
 					}
 				}

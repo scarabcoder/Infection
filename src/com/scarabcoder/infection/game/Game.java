@@ -47,6 +47,8 @@ public class Game {
 	
 	private HashMap<String, Material> arrowGun = new HashMap<String, Material>();
 	
+	private HashMap<String, Integer> invincible = new HashMap<String, Integer>();
+	
 	private String id;
 	
 	private HashMap<String, PlayerData> playerData = new HashMap<String, PlayerData>();
@@ -104,7 +106,6 @@ public class Game {
 						}
 					}
 				}
-				
 				for(String str : sCooldown.keySet()){
 					if(sCooldown.get(str).equals(0)){
 						sCooldown.remove(str);
@@ -125,7 +126,8 @@ public class Game {
 					}else{
 						mCooldown.put(str, mCooldown.get(str) - 1);
 					}
-				}
+}
+				
 			}
 			
 		}, 0L, 1L);
@@ -230,6 +232,11 @@ public class Game {
 				
 			}
 		}else{
+			for(String str : this.invincible.keySet()){
+				if(invincible.get(str) != 0){
+					invincible.put(str, invincible.get(str) - 1);
+				}
+			}
 			time += 1;
 			if(time == 8 * 60){
 				this.baby = true;
@@ -238,7 +245,7 @@ public class Game {
 						ZombieDisguise disguise = new ZombieDisguise();
 						disguise.setCustomName(p.getName());
 						disguise.setAdult(!this.baby);
-						this.speed = 2;
+						this.speed = 1;
 						p.removePotionEffect(PotionEffectType.SPEED);
 						p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 3));
 						Main.api.disguise(p, disguise);
@@ -268,23 +275,23 @@ public class Game {
 				
 				Bukkit.broadcastMessage(ChatColor.RESET + "[" + ChatColor.RED + "Infection" + ChatColor.RESET + "] " + ChatColor.GREEN + ChatColor.BOLD.toString() + winner.getName() + " won the game on " + this.getID() + " with " + this.points.get(winner.getUniqueId().toString()) + " kills!");
 				List<String> players = (List<String>) Main.getPlugin().getConfig().getList("players");
-				boolean contains = false;
-				for(String str : players){
-					if(str.equals(winner.getUniqueId().toString())){
-						contains = true;
+				
+				for(Player p : this.getPlayers()){
+					if(!players.contains(p.getUniqueId().toString())){
+						players.add(p.getUniqueId().toString());
 					}
-				}
-				if(!contains){
-					players.add(winner.getUniqueId().toString());
-				}
-				Main.getPlugin().getConfig().set("players", players);
-				if(Main.getPlugin().getConfig().contains("player." + winner.getUniqueId().toString())){
-					Main.getPlugin().getConfig().set("player." + winner.getUniqueId().toString(), Main.getPlugin().getConfig().getInt("player." + winner.getUniqueId().toString()) + this.points.get(winner.getUniqueId().toString()));
-				}else{
-					Main.getPlugin().getConfig().set("player." + winner.getUniqueId().toString(), this.points.get(winner.getUniqueId().toString()));
+					Main.getPlugin().getConfig().set("players", players);
+					if(Main.getPlugin().getConfig().contains("player." + p.getUniqueId().toString())){
+						Main.getPlugin().getConfig().set("player." + p.getUniqueId().toString(), Main.getPlugin().getConfig().getInt("player." + p.getUniqueId().toString()) + this.points.get(p.getUniqueId().toString()));
+					}else{
+						Main.getPlugin().getConfig().set("player." + p.getUniqueId().toString(), this.points.get(p.getUniqueId().toString()));
+					}
 				}
 				Main.getPlugin().saveConfig();
 				this.endGame();
+			}
+			if(infected == 0){
+				this.infect(this.getPlayers().get(new Random().nextInt(this.players.size())));
 			}
 			if(this.flare == 60){
 				this.flare = 0;
@@ -302,6 +309,7 @@ public class Game {
 	public void startGame(){
 		for(Player p : this.getPlayers()){
 			p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1,1);
+			p.setTotalExperience(0);
 		}
 		this.setGameStatus(GameStatus.INGAME);
 		List<Player> infected = new ArrayList<Player>(this.getPlayers());
@@ -311,6 +319,7 @@ public class Game {
 		random = new Random().nextInt(infected.size());
 		this.infect(infected.get(random));
 		infected.remove(random);
+		
 		for(Player p : this.getPlayers()){
 			if(!this.isInfected(p)){
 				p.teleport(this.humanSpawn);
@@ -330,7 +339,7 @@ public class Game {
 				p.getInventory().addItem(gun);
 				p.getInventory().addItem(gun1);
 				p.getInventory().addItem(gun2);
-				p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 8 * 20, 0));
+				p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 15 * 20, 1));
 				p.updateInventory();
 				TitleAPI.sendTitle(p, 10, 75, 10, ChatColor.GREEN + "Stay alive!", "Shoot the zombies before they infect you.");
 			}else{
@@ -371,7 +380,7 @@ public class Game {
 		if(arrow.getShooter() instanceof CraftPlayer){
 			Player p = (Player) arrow.getShooter();
 			if(this.isInfected(hit)){
-				
+				if(this.invincible.get(hit.getUniqueId().toString()) == 0){
 					int doDamage = 0;
 					if(this.arrowGun.get(arrow.getUniqueId().toString()).equals(Material.IRON_HOE)){
 						doDamage = 20;
@@ -395,6 +404,7 @@ public class Game {
 						this.points.put(p.getUniqueId().toString(), this.points.get(p.getUniqueId().toString()) + 1);
 						hit.getWorld().spigot().playEffect(hit.getEyeLocation(), Effect.TILE_BREAK, Material.REDSTONE_BLOCK.getId(), 0, 0, 0, 0, 1, 50, 50);
 						hit.teleport(this.infectedSpawn);
+						this.invincible.put(hit.getUniqueId().toString(), 4);
 						hit.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 2, 0));
 						for(Player p1 : this.getPlayers()){
 							p1.playSound(hit.getLocation(), Sound.ENTITY_ZOMBIE_DEATH, 1, 0.8f);
@@ -405,7 +415,7 @@ public class Game {
 					}
 					this.arrowGun.remove(arrow.getUniqueId().toString());
 					arrow.remove();
-				
+				}
 			}
 		}
 	}
@@ -431,6 +441,7 @@ public class Game {
 				p.setHealth(20);
 				p.setFoodLevel(20);
 				p.setTotalExperience(0);
+				invincible.put(p.getUniqueId().toString(), 0);
 				this.sendMessage(ChatColor.GREEN + p.getName() + " joined the game!");
 				this.points.put(p.getUniqueId().toString(), 0);
 				this.heat.put(p.getUniqueId().toString(), 0);
@@ -462,11 +473,11 @@ public class Game {
 		p.sendMessage(ChatColor.RED + "YOU ARE " + ChatColor.DARK_RED + ChatColor.UNDERLINE + "INFECTED");
 		p.teleport(this.infectedSpawn);
 		ZombieDisguise disguise = new ZombieDisguise();
-		disguise.setCustomName(p.getName());
 		disguise.setAdult(!this.baby);
 		Main.api.disguise(p, disguise);
 		TitleAPI.sendTitle(p, 10, 120, 10, ChatColor.RED + "Braaaains...", "Infect the humans.");
 		p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, this.speed));
+		this.invincible.put(p.getUniqueId().toString(), 4);
 	}
 	
 	private PlayerType getPlayerType(Player p){
