@@ -27,6 +27,7 @@ import com.scarabcoder.infection.listeners.CommandListener;
 import com.scarabcoder.infection.listeners.DropItemListener;
 import com.scarabcoder.infection.listeners.InteractSignListener;
 import com.scarabcoder.infection.listeners.PlayerDamageListener;
+import com.scarabcoder.infection.listeners.PlayerQuitListener;
 import com.scarabcoder.infection.listeners.RightClickListener;
 import com.scarabcoder.infection.listeners.SignPlaceListener;
 
@@ -62,6 +63,7 @@ public class Main extends JavaPlugin{
 		this.getCommand("infection").setExecutor(new InfectionCommand());
 		this.getLogger().log(Level.FINE, "Started Infection by ScarabCoder");
 		this.getServer().getPluginManager().registerEvents(new CommandListener(), this);
+		this.getServer().getPluginManager().registerEvents(new PlayerQuitListener(), this);
 		this.getServer().getPluginManager().registerEvents(new PlayerDamageListener(), this);
 		this.getServer().getPluginManager().registerEvents(new DropItemListener(), this);
 		this.getServer().getPluginManager().registerEvents(new RightClickListener(), this);

@@ -1,7 +1,6 @@
 package com.scarabcoder.infection.game;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -12,6 +11,7 @@ import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
 import org.bukkit.craftbukkit.v1_10_R1.entity.CraftPlayer;
 import org.bukkit.entity.Arrow;
@@ -22,6 +22,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import com.connorlinfoot.titleapi.TitleAPI;
+import com.scarabcoder.alphacore.economy.Economy;
 import com.scarabcoder.infection.Main;
 import com.scarabcoder.infection.enums.GameStatus;
 import com.scarabcoder.infection.enums.PlayerType;
@@ -42,6 +43,8 @@ public class Game {
 	private HashMap<String, Integer> heat = new HashMap<String, Integer>();
 	
 	private int countdown;
+	
+	
 	
 	private HashMap<String, Integer> points = new HashMap<String, Integer>();
 	
@@ -273,6 +276,9 @@ public class Game {
 					}
 				}
 				
+				winner.sendMessage(ChatColor.GREEN + "You received a 800 Crystal bonus for winning Infection with the most kills!");
+				Economy.addBalance(winner, 800);
+				
 				Bukkit.broadcastMessage(ChatColor.RESET + "[" + ChatColor.RED + "Infection" + ChatColor.RESET + "] " + ChatColor.GREEN + ChatColor.BOLD.toString() + winner.getName() + " won the game on " + this.getID() + " with " + this.points.get(winner.getUniqueId().toString()) + " kills!");
 				List<String> players = (List<String>) Main.getPlugin().getConfig().getList("players");
 				
@@ -352,6 +358,8 @@ public class Game {
 	public void endGame(){
 		this.sendMessage("Game ending!");
 		for(Player p : this.getPlayers()){
+			p.sendMessage(ChatColor.GREEN + "You received " + this.points.get(p.getUniqueId().toString()) * 50 + " Crystals for " + this.points.get(p.getUniqueId().toString()) + " kills!");
+			Economy.addBalance(p, this.points.get(p.getUniqueId().toString()) * 50);
 			this.removePlayer(p);
 			this.zoomOut(p);
 		}
@@ -484,12 +492,15 @@ public class Game {
 		return this.pTypes.get(p.getUniqueId().toString());
 	}
 	
-	public void removePlayer(Player p){
+	public void removePlayer(OfflinePlayer p){
 		Main.api.undisguise(p);
 		this.players.remove(p.getUniqueId().toString());
 		this.pTypes.remove(p.getUniqueId().toString());
 		this.playerData.get(p.getUniqueId().toString()).applyToPlayer();
-		p.removePotionEffect(PotionEffectType.SPEED);
+		this.sendMessage(ChatColor.RED + p.getName() + "Left Infection");
+		if(p.isOnline()){
+			p.getPlayer().removePotionEffect(PotionEffectType.SPEED);
+		}
 	}
 	
 	public void sendMessage(String msg){
